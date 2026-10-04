@@ -12,6 +12,7 @@ from sqlalchemy import (
     JSON,
     String,
     Text,
+    UniqueConstraint,
     func,
 )
 from sqlalchemy.dialects.postgresql import UUID
@@ -19,7 +20,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
 
-# Type alias for UUID primary key that falls back cleanly to String/UUID
 UUID_ID = UUID(as_uuid=True)
 
 
@@ -60,7 +60,7 @@ class Child(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     parent: Mapped["Parent"] = relationship("Parent", back_populates="children")
-    consents: Mapped[List["Consent"]] = relationship("Consent", back_populates="child", cascade="all, delete-orphan")
+    consent: Mapped[Optional["Consent"]] = relationship("Consent", back_populates="child", uselist=False, cascade="all, delete-orphan")
     devices: Mapped[List["Device"]] = relationship("Device", back_populates="child", cascade="all, delete-orphan")
     control: Mapped[Optional["Control"]] = relationship("Control", back_populates="child", uselist=False, cascade="all, delete-orphan")
     sessions: Mapped[List["Session"]] = relationship("Session", back_populates="child", cascade="all, delete-orphan")
@@ -71,20 +71,23 @@ class Child(Base):
 
 class Consent(Base):
     __tablename__ = "consents"
+    __table_args__ = (
+        UniqueConstraint("child_id", name="uq_consents_child_id"),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID_ID, primary_key=True, default=uuid.uuid4)
     parent_id: Mapped[uuid.UUID] = mapped_column(UUID_ID, ForeignKey("parents.id", ondelete="CASCADE"), nullable=False, index=True)
     child_id: Mapped[uuid.UUID] = mapped_column(UUID_ID, ForeignKey("children.id", ondelete="CASCADE"), nullable=False, index=True)
     method: Mapped[str] = mapped_column(String(100), nullable=False)
     consented_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    voice: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    expression: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    store_reasoning: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    model_improvement: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    voice: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    expression: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    store_reasoning: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    model_improvement: Mapped[bool] = mapped_column(Boolean, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     parent: Mapped["Parent"] = relationship("Parent", back_populates="consents")
-    child: Mapped["Child"] = relationship("Child", back_populates="consents")
+    child: Mapped["Child"] = relationship("Child", back_populates="consent")
 
 
 class Device(Base):

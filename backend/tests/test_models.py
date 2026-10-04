@@ -1,3 +1,4 @@
+import socket
 import uuid
 from sqlalchemy import create_engine, inspect, select
 from sqlalchemy.orm import Session as SqlSession, sessionmaker
@@ -38,14 +39,24 @@ EXPECTED_TABLES = {
 }
 
 
+def get_test_db_url():
+    url = settings.DATABASE_URL
+    if "@db:" in url or "@db/" in url:
+        try:
+            socket.gethostbyname("db")
+        except socket.gaierror:
+            url = url.replace("@db:", "@localhost:").replace("@db/", "@localhost/")
+    if url.startswith("postgresql://"):
+        url = url.replace("postgresql://", "postgresql+psycopg2://", 1)
+    return url
+
+
 @pytest.fixture(scope="module")
 def db_engine():
-    # Enforce connecting against PostgreSQL specified in DATABASE_URL
     assert "postgresql" in settings.DATABASE_URL, f"Database URL must be PostgreSQL, got: {settings.DATABASE_URL}"
-    engine = create_engine(settings.DATABASE_URL, pool_pre_ping=True)
+    engine = create_engine(get_test_db_url(), pool_pre_ping=True)
     Base.metadata.create_all(bind=engine)
     yield engine
-    # Cleanup metadata after tests
     Base.metadata.drop_all(bind=engine)
 
 
@@ -113,7 +124,8 @@ def test_child_delete_cascade_removes_all_child_owned_rows(db_session: SqlSessio
         method="DPDP_VERIFIED",
         voice=True,
         expression=False,
-        store_reasoning=True
+        store_reasoning=True,
+        model_improvement=False
     )
     session_record = Session(
         id=uuid.uuid4(),
@@ -132,7 +144,7 @@ def test_child_delete_cascade_removes_all_child_owned_rows(db_session: SqlSessio
         child_id=child.id,
         concept="Gravity underwater",
         child_reason="Thought gravity turns off in pool",
-        parentTip="Explain buoyancy force"
+        parent_tip="Explain buoyancy force"
     )
     alert = Alert(
         id=uuid.uuid4(),
@@ -184,7 +196,7 @@ def test_child_delete_cascade_removes_all_child_owned_rows(db_session: SqlSessio
     db_session.delete(child)
     db_session.commit()
 
-    # 6. Assert ON DELETE CASCADE removed all sessions, attempts, probe_responses, mastery, misconceptions, alerts, controls and devices rows
+    # 6. Assert ON DELETE CASCADE removed all child-owned rows
     assert db_session.execute(select(Session).where(Session.child_id == child_id)).scalar_one_or_none() is None
     assert db_session.execute(select(QuestionAttempt).where(QuestionAttempt.session_id == session_id)).scalar_one_or_none() is None
     assert db_session.execute(select(ProbeResponse).where(ProbeResponse.attempt_id == attempt_id)).scalar_one_or_none() is None
