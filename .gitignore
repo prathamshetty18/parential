@@ -1,0 +1,41 @@
+# Environment variables
+.env
+*.env
+
+# Python / Pytest
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.venv/
+env/
+venv/
+ENV/
+
+# Node / Simulator dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm/
+
+# Android / Gradle
+.gradle/
+build/
+app/build/
+*.apk
+*.aar
+*.keystore
+.navigation/
+captures/
+.externalNativeBuild
+.cxx/
+local.properties
+
+# IDE / Editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db

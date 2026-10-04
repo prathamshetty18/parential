@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ROAVAI Parental Control App & Wini Robot Simulator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dark-mode">
+  <!-- Top Navigation & View Controls -->
+  <header class="top-nav">
+    <div class="brand">
+      <div class="logo-icon">🤖</div>
+      <div class="brand-text">
+        <span class="brand-title">ROAVAI Cloud Tutor</span>
+        <span class="brand-sub">Parental Control App & Robot Simulator</span>
+      </div>
+    </div>
+    
+    <div class="view-switchers">
+      <button class="view-btn active" id="btn-split-view">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 3v18"/></svg>
+        Split View (App + Robot)
+      </button>
+      <button class="view-btn" id="btn-phone-only">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M12 18h.01"/></svg>
+        Android App Only
+      </button>
+      <button class="view-btn" id="btn-robot-only">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="14" rx="3"/><path d="M12 2v4"/><circle cx="12" cy="11" r="2"/></svg>
+        Wini Robot Only
+      </button>
+    </div>
+
+    <div class="status-pills">
+      <span class="pill pill-success" id="sync-pill">
+        <span class="dot pulse"></span> WebSocket Online (&lt;30s Sync)
+      </span>
+      <button class="theme-toggle" id="theme-toggle" title="Toggle Light/Dark Theme">🌙</button>
+    </div>
+  </header>
+
+  <!-- Main Workspace Layout -->
+  <main class="main-container" id="main-container">
+    
+    <!-- LEFT COLUMN: Android Mobile Phone App Simulator -->
+    <section class="phone-wrapper">
+      <div class="phone-frame">
+        <!-- Phone Notch / Status Bar -->
+        <div class="phone-status-bar">
+          <span class="time">9:41</span>
+          <div class="notch"></div>
+          <div class="icons">
+            <span>5G</span>
+            <span>📶</span>
+            <span>🔋 92%</span>
+          </div>
+        </div>
+
+        <!-- Phone App Content -->
+        <div class="app-screen">
+          
+          <!-- App PIN Lock Overlay -->
+          <div class="pin-lock-overlay" id="pin-lock-overlay">
+            <div class="pin-card">
+              <div class="pin-icon">🔒</div>
+              <h3>Parental Security Lock</h3>
+              <p>Enter 4-digit PIN or use Biometrics to open ROAVAI Parent App</p>
+              
+              <div class="pin-dots">
+                <span class="pin-dot"></span>
+                <span class="pin-dot"></span>
+                <span class="pin-dot"></span>
+                <span class="pin-dot"></span>
+              </div>
+
+              <div class="pin-keypad">
+                <button onclick="pressPin('1')">1</button>
+                <button onclick="pressPin('2')">2</button>
+                <button onclick="pressPin('3')">3</button>
+                <button onclick="pressPin('4')">4</button>
+                <button onclick="pressPin('5')">5</button>
+                <button onclick="pressPin('6')">6</button>
+                <button onclick="pressPin('7')">7</button>
+                <button onclick="pressPin('8')">8</button>
+                <button onclick="pressPin('9')">9</button>
+                <button onclick="biometricUnlock()" title="Biometric Unlock">☝️</button>
+                <button onclick="pressPin('0')">0</button>
+                <button onclick="clearPin()">⌫</button>
+              </div>
+              <div class="pin-quick-unlock">
+                <button class="btn-text" onclick="quickPassPin()">Demo Auto-Unlock (1234)</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- App Header -->
+          <div class="app-header">
+            <div class="child-selector">
+              <div class="child-avatar" id="current-child-avatar">🚀</div>
+              <div class="child-info">
+                <select id="child-dropdown" onchange="switchChildProfile(this.value)">
+                  <option value="child_leo">Leo (Age 8 • 3rd Grade)</option>
+                  <option value="child_maya">Maya (Age 11 • 6th Grade)</option>
+                </select>
+                <span class="child-status-badge online" id="app-wini-status">Wini Paired • Online</span>
+              </div>
+            </div>
+            <button class="btn-icon" onclick="openAddChildModal()" title="Add Child Profile">+</button>
+          </div>
+
+          <!-- Tab Navigation -->
+          <nav class="app-tabs">
+            <button class="tab-item active" onclick="switchTab('tab-dashboard', this)">
+              <span class="tab-icon">📊</span>
+              <span class="tab-label">Home</span>
+            </button>
+            <button class="tab-item" onclick="switchTab('tab-misconceptions', this)">
+              <span class="tab-icon">💡</span>
+              <span class="tab-label">Reasoning</span>
+            </button>
+            <button class="tab-item" onclick="switchTab('tab-controls', this)">
+              <span class="tab-icon">⚙️</span>
+              <span class="tab-label">Controls</span>
+            </button>
+            <button class="tab-item" onclick="switchTab('tab-pairing', this)">
+              <span class="tab-icon">📲</span>
+              <span class="tab-label">Pairing</span>
+            </button>
+            <button class="tab-item" onclick="switchTab('tab-privacy', this)">
+              <span class="tab-icon">🛡️</span>
+              <span class="tab-label">Privacy</span>
+            </button>
+          </nav>
+
+          <!-- TAB 1: DASHBOARD -->
+          <div class="tab-content active" id="tab-dashboard">
+            <div class="summary-cards">
+              <div class="card stat-card glow">
+                <div class="stat-header">
+                  <span class="stat-title">Time Today</span>
+                  <span class="stat-badge">28 / 45 m</span>
+                </div>
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill" style="width: 62%;"></div>
+                </div>
+                <div class="stat-sub">17 minutes remaining before daily limit</div>
+              </div>
+
+              <div class="stat-grid">
+                <div class="card mini-card">
+                  <span class="mini-label">Learning Streak</span>
+                  <span class="mini-value">🔥 5 Days</span>
+                </div>
+                <div class="card mini-card">
+                  <span class="mini-label">Self-Correction Rate</span>
+                  <span class="mini-value text-success">🎯 78%</span>
+                  <span class="mini-sub">Fixed after Wini probe</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Subject Mastery Section -->
+            <div class="section-title">
+              <h4>Subject Mastery</h4>
+              <span class="text-muted">Cloud Tutor Learner Model</span>
+            </div>
+
+            <div class="mastery-list">
+              <div class="card mastery-item">
+                <div class="mastery-info">
+                  <span class="mastery-subject">Mathematics</span>
+                  <span class="mastery-score">84%</span>
+                </div>
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill bg-blue" style="width: 84%;"></div>
+                </div>
+                <div class="mastery-trend">📈 +4% this week • Fractions & Decimals</div>
+              </div>
+
+              <div class="card mastery-item">
+                <div class="mastery-info">
+                  <span class="mastery-subject">Science & Nature</span>
+                  <span class="mastery-score">72%</span>
+                </div>
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill bg-purple" style="width: 72%;"></div>
+                </div>
+                <div class="mastery-trend">📈 +8% this week • Gravity & Buoyancy</div>
+              </div>
+            </div>
+
+            <!-- Session History -->
+            <div class="section-title">
+              <h4>Recent Tutoring Sessions</h4>
+            </div>
+            <div class="session-card card">
+              <div class="session-top">
+                <span class="session-date">Today • 28 mins</span>
+                <span class="badge badge-accent">Science</span>
+              </div>
+              <div class="action-mix">
+                <span class="mix-chip">30% Explain</span>
+                <span class="mix-chip">40% Hint</span>
+                <span class="mix-chip">20% Practice</span>
+                <span class="mix-chip">10% Probe</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 2: MISCONCEPTIONS & REASONING DIAGNOSTIC (P0) -->
+          <div class="tab-content" id="tab-misconceptions">
+            <div class="info-banner">
+              <span>🧠</span>
+              <p><strong>Cloud Tutor Misconception Engine:</strong> Shows what your child thought when picking a wrong answer, and how to help at home.</p>
+            </div>
+
+            <div id="misconception-feed" class="feed-container">
+              <!-- Dynamically populated misconceptions -->
+            </div>
+          </div>
+
+          <!-- TAB 3: CONTROLS & PROBE TUTORING STYLE (P0) -->
+          <div class="tab-content" id="tab-controls">
+            <!-- Sync Notification Banner -->
+            <div class="sync-banner" id="sync-banner">
+              <span class="sync-icon">⚡</span>
+              <span id="sync-banner-text">Rule updates reach Wini within 30s when online.</span>
+            </div>
+
+            <!-- Instant Pause Wini Button -->
+            <div class="card pause-card">
+              <div class="pause-text">
+                <strong>Pause Wini Now</strong>
+                <p>Instantly locks Wini's screen and pauses session.</p>
+              </div>
+              <button class="btn-pause" id="btn-pause-toggle" onclick="togglePauseWini()">
+                ⏸️ Pause Wini
+              </button>
+            </div>
+
+            <!-- Daily Time Limit -->
+            <div class="card control-group">
+              <div class="control-header">
+                <label for="time-limit-slider"><strong>Daily Time Limit</strong></label>
+                <span class="control-value" id="val-time-limit">45 Mins</span>
+              </div>
+              <input type="range" id="time-limit-slider" min="15" max="120" step="15" value="45" oninput="updateControlState()">
+            </div>
+
+            <!-- Probe-First Tutoring Style Settings (PRD Section 4.5) -->
+            <div class="section-title">
+              <h4>Probe-First Tutoring Rules (P0)</h4>
+            </div>
+
+            <div class="card control-group">
+              <div class="control-header">
+                <label><strong>Tries Before Answer Reveal</strong></label>
+                <span class="control-value" id="val-reveal-tries">2 Tries</span>
+              </div>
+              <p class="control-desc">Wrong tries before Wini reveals the answer (1-3). Wini always reveals eventually so the child is never stuck.</p>
+              <div class="segmented-control">
+                <button class="segment-btn" onclick="setRevealTries(1, this)">1 Try</button>
+                <button class="segment-btn active" onclick="setRevealTries(2, this)">2 Tries (Default)</button>
+                <button class="segment-btn" onclick="setRevealTries(3, this)">3 Tries</button>
+              </div>
+            </div>
+
+            <div class="card control-group">
+              <div class="control-header">
+                <label><strong>Probe Input Mode</strong></label>
+              </div>
+              <p class="control-desc">How your child explains their reasoning when Wini asks "Why did you pick that?"</p>
+              <select id="probe-mode-select" class="form-select" onchange="updateControlState()">
+                <option value="both" selected>Voice or Tap (Both)</option>
+                <option value="voice">Voice Only</option>
+                <option value="tap">Tap Option Only</option>
+              </select>
+            </div>
+
+            <div class="card control-group row-toggle">
+              <div>
+                <strong>Frustration Guard</strong>
+                <p class="control-desc">After repeated wrong answers or frustration, Wini switches from probing to hints.</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="frustration-guard-toggle" checked onchange="updateControlState()">
+                <span class="slider round"></span>
+              </label>
+            </div>
+
+            <div class="card control-group row-toggle">
+              <div>
+                <strong>Child Reasoning Visibility</strong>
+                <p class="control-desc">Allow parent dashboard to show child's stated reasons behind wrong answers.</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="reasoning-visibility-toggle" checked onchange="updateControlState()">
+                <span class="slider round"></span>
+              </label>
+            </div>
+
+            <button class="btn-primary full-width" onclick="saveControlsToBackend()">
+              💾 Save &amp; Sync Rules to Wini
+            </button>
+          </div>
+
+          <!-- TAB 4: PAIRING (P0) -->
+          <div class="tab-content" id="tab-pairing">
+            <div class="card pairing-card">
+              <div class="pairing-icon">📷</div>
+              <h3>Pair Wini Desktop Robot</h3>
+              <p>Scan the QR code displayed on Wini's screen during setup.</p>
+              
+              <div class="qr-scanner-sim">
+                <div class="scanner-frame">
+                  <div class="scanner-line"></div>
+                  <div class="qr-mock-code">WINI-QR-8921</div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="pairing-qr-input">Or enter Pairing Code manually:</label>
+                <input type="text" id="pairing-qr-input" class="form-input" value="WINI-QR-8921">
+              </div>
+
+              <button class="btn-primary full-width" onclick="simulateQrPairing()">
+                🔗 Complete Pairing
+              </button>
+            </div>
+          </div>
+
+          <!-- TAB 5: PRIVACY & DATA CONTROL (P0) -->
+          <div class="tab-content" id="tab-privacy">
+            <div class="card privacy-header-card">
+              <h3>🛡️ Privacy &amp; Data Control</h3>
+              <p>Full control over your child's data. Zero third-party ad trackers.</p>
+            </div>
+
+            <div class="card privacy-toggle-group">
+              <div class="row-toggle">
+                <div>
+                  <strong>Store Child Stated Reasoning</strong>
+                  <p class="control-desc">Allows storing voice/text transcripts of child explanations during probe questions.</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="privacy-reasoning-toggle" checked onchange="updatePrivacyState()">
+                  <span class="slider round"></span>
+                </label>
+              </div>
+
+              <div class="row-toggle">
+                <div>
+                  <strong>Voice Audio Processing</strong>
+                  <p class="control-desc">Allow Wini to process voice responses for probe questions.</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="privacy-voice-toggle" checked onchange="updatePrivacyState()">
+                  <span class="slider round"></span>
+                </label>
+              </div>
+
+              <div class="row-toggle">
+                <div>
+                  <strong>AI Model Improvement Opt-In</strong>
+                  <p class="control-desc">Allow anonymized data to improve Cloud Tutor models.</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="privacy-ai-toggle" onchange="updatePrivacyState()">
+                  <span class="slider round"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="card privacy-actions">
+              <button class="btn-secondary full-width" onclick="exportChildData()">
+                📥 Export Child Data (JSON)
+              </button>
+              <button class="btn-danger full-width" onclick="confirmDeleteChildProfile()">
+                🗑️ Delete Child Profile &amp; Purge Data
+              </button>
+            </div>
+          </div>
+
+        </div> <!-- End App Screen -->
+      </div>
+    </section>
+
+    <!-- RIGHT COLUMN: WINI DESKTOP ROBOT SIMULATOR -->
+    <section class="robot-wrapper">
+      <div class="robot-card">
+        <!-- Robot Header -->
+        <div class="robot-header">
+          <div class="robot-title">
+            <span class="robot-avatar-icon">🤖</span>
+            <div>
+              <h3>Wini - Desktop Tutor Robot</h3>
+              <span class="robot-sub">Cloud Tutor Learner Model Engine • Connected to Leo</span>
+            </div>
+          </div>
+          <span class="badge badge-online" id="wini-live-status">Online</span>
+        </div>
+
+        <!-- Robot Screen Display -->
+        <div class="robot-screen" id="wini-robot-screen">
+          <!-- Animated Face / Avatar -->
+          <div class="wini-avatar-stage">
+            <div class="wini-face" id="wini-face">
+              <div class="eye left"></div>
+              <div class="eye right"></div>
+              <div class="mouth happy" id="wini-mouth"></div>
+            </div>
+            <div class="speech-bubble" id="wini-speech-bubble">
+              "Hi Leo! Ready to learn about Science today?"
+            </div>
+          </div>
+
+          <!-- Interactive Tutor Question Panel -->
+          <div class="tutor-stage" id="tutor-stage">
+            <div class="tutor-question-card">
+              <div class="question-header">
+                <span class="subject-tag">Science &amp; Physics</span>
+                <span class="tries-tag" id="tries-tag">Try 1 of 2</span>
+              </div>
+              <h4 class="question-text" id="q-text">Why do heavy ships float on ocean water while small pebbles sink?</h4>
+
+              <div class="mcq-options" id="mcq-options">
+                <button class="mcq-btn" onclick="chooseMcq('A')">Option A: Water pushes upward with buoyancy equal to weight of displaced water.</button>
+                <button class="mcq-btn" onclick="chooseMcq('B')">Option B: Ships have air inside, so gravity turns off for them underwater.</button>
+                <button class="mcq-btn" onclick="chooseMcq('C')">Option C: Ocean salt water destroys gravity for big objects.</button>
+              </div>
+            </div>
+
+            <!-- PROBE FIRST DIALOGUE BOX (Runs on Wini) -->
+            <div class="probe-box hidden" id="probe-box">
+              <div class="probe-header">
+                <span class="probe-icon">🔍</span>
+                <strong>Wini's Probe: "Why did you pick that option?"</strong>
+              </div>
+              <p>Cloud Tutor detects a misconception! Wini asks the child to explain their reasoning before giving any answer.</p>
+
+              <div class="child-reasoning-input">
+                <input type="text" id="child-voice-sim-text" class="form-input" value="Because when I go in the pool I feel weightless so gravity stops working underwater.">
+                <div class="reasoning-actions">
+                  <button class="btn-voice-sim" onclick="simulateVoiceInput()">🎙️ Speak (Simulate Voice)</button>
+                  <button class="btn-primary" onclick="submitChildReasoning()">Submit Explanation</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- HINT & RETRY BOX -->
+            <div class="hint-box hidden" id="hint-box">
+              <div class="hint-header">💡 Targeted Hint from Wini:</div>
+              <p id="hint-text">Think about pushing a beach ball under water. Does gravity stop, or does the water push back UP against your hands?</p>
+              <button class="btn-secondary" onclick="retryQuestion()">Retry Question</button>
+            </div>
+
+            <!-- ANSWER REVEAL BOX -->
+            <div class="reveal-box hidden" id="reveal-box">
+              <div class="reveal-header">✅ Answer Revealed (Limit Reached):</div>
+              <p>The correct answer is <strong>Option A</strong>! Buoyancy is the upward force exerted by water. Great effort trying!</p>
+              <button class="btn-primary" onclick="resetTutorQuestion()">Next Question</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Robot Live Rule Monitor Inspector -->
+        <div class="robot-inspector">
+          <h4>🤖 Live Rules Enforced on Wini (Synced from Parent App):</h4>
+          <div class="inspector-grid">
+            <div class="inspector-item">
+              <span class="ins-label">Wrong Tries Before Reveal:</span>
+              <span class="ins-val" id="ins-reveal-tries">2 Tries</span>
+            </div>
+            <div class="inspector-item">
+              <span class="ins-label">Probe Input Mode:</span>
+              <span class="ins-val" id="ins-probe-mode">Voice or Tap</span>
+            </div>
+            <div class="inspector-item">
+              <span class="ins-label">Frustration Guard:</span>
+              <span class="ins-val" id="ins-frustration">ACTIVE (ON)</span>
+            </div>
+            <div class="inspector-item">
+              <span class="ins-label">Status Sync Latency:</span>
+              <span class="ins-val text-success" id="ins-sync-time">0.3 seconds</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Add Child Modal -->
+  <div class="modal-overlay hidden" id="add-child-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Add Child Profile</h3>
+        <button class="btn-close" onclick="closeAddChildModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="info-banner warning">
+          <span>⚠️</span>
+          <p><strong>FR-1 Compliance:</strong> Parental consent must be verified before creating a child profile.</p>
+        </div>
+        <div class="form-group">
+          <label>Child Name / Nickname</label>
+          <input type="text" id="new-child-name" class="form-input" placeholder="e.g. Leo">
+        </div>
+        <div class="form-group">
+          <label>Age &amp; Grade</label>
+          <select id="new-child-age" class="form-select">
+            <option value="8">8 Years (3rd Grade)</option>
+            <option value="9">9 Years (4th Grade)</option>
+            <option value="10">10 Years (5th Grade)</option>
+            <option value="11">11 Years (6th Grade)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Curriculum</label>
+          <input type="text" id="new-child-curriculum" class="form-input" value="STEM & Elementary Core">
+        </div>
+        <div class="form-group row-toggle">
+          <div>
+            <strong>Record Verifiable Parental Consent</strong>
+            <p class="control-desc">I confirm I am the parent/guardian and consent to Cloud Tutor data collection.</p>
+          </div>
+          <input type="checkbox" id="new-child-consent" checked>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeAddChildModal()">Cancel</button>
+        <button class="btn-primary" onclick="submitNewChild()">Create Child Profile</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
