@@ -54,7 +54,13 @@ def get_test_db_url():
 @pytest.fixture(scope="module")
 def db_engine():
     assert "postgresql" in settings.DATABASE_URL, f"Database URL must be PostgreSQL, got: {settings.DATABASE_URL}"
-    engine = create_engine(get_test_db_url(), pool_pre_ping=True)
+    url = get_test_db_url()
+    try:
+        engine = create_engine(url, pool_pre_ping=True, connect_args={"connect_timeout": 2})
+        with engine.connect() as conn:
+            pass
+    except Exception:
+        pytest.skip(f"PostgreSQL server is not reachable at {url}")
     Base.metadata.create_all(bind=engine)
     yield engine
     Base.metadata.drop_all(bind=engine)

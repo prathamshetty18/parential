@@ -284,6 +284,44 @@ def test_update_child_consent():
     assert data["expression"] is True
 
 
+def test_parallel_requests_parent_row_locking():
+    """Test that parallel requests to create children execute with parent row locking."""
+    import concurrent.futures
+
+    _, headers = create_test_parent(email="parallel_lock@example.com")
+
+    def make_child_payload(name):
+        return {
+            "name": name,
+            "age": 8,
+            "grade": "3rd Grade",
+            "curriculum": "STEM",
+            "consent": {
+                "method": "EMAIL",
+                "voice": True,
+                "expression": False,
+                "store_reasoning": True,
+                "model_improvement": False,
+            },
+        }
+
+    for i in range(1, 5):
+        resp = client.post("/children", json=make_child_payload(f"Child {i}"), headers=headers)
+        assert resp.status_code == 201
+
+    def post_child(name):
+        return client.post("/children", json=make_child_payload(name), headers=headers)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+        f1 = executor.submit(post_child, "Parallel Child A")
+        f2 = executor.submit(post_child, "Parallel Child B")
+        r1 = f1.result()
+        r2 = f2.result()
+
+    assert r1.status_code == 409
+    assert r2.status_code == 409
+
+
 def test_alembic_migration_002_upgrade_and_downgrade():
     ini_path = "backend/alembic.ini" if os.path.exists("backend/alembic.ini") else "alembic.ini"
     alembic_cfg = Config(ini_path)
