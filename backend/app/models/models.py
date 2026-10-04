@@ -92,11 +92,15 @@ class Consent(Base):
 
 class Device(Base):
     __tablename__ = "devices"
+    __table_args__ = (
+        UniqueConstraint("child_id", name="uq_devices_child_id"),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID_ID, primary_key=True, default=uuid.uuid4)
-    child_id: Mapped[Optional[uuid.UUID]] = mapped_column(UUID_ID, ForeignKey("children.id", ondelete="CASCADE"), nullable=True, index=True)
+    child_id: Mapped[Optional[uuid.UUID]] = mapped_column(UUID_ID, ForeignKey("children.id", ondelete="CASCADE"), nullable=True, unique=True, index=True)
     pairing_token: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
-    status: Mapped[str] = mapped_column(String(50), default="offline", nullable=False)
+    device_secret_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    status: Mapped[str] = mapped_column(String(50), default="unpaired", nullable=False)
     last_seen: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 

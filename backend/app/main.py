@@ -1,6 +1,12 @@
 from fastapi import FastAPI
 
-from app.routers import auth_router, children_router
+from app.routers import (
+    auth_router,
+    children_router,
+    controls_router,
+    device_api_router,
+    devices_router,
+)
 
 app = FastAPI(
     title="ROAVAI Parental Control Companion API",
@@ -10,6 +16,9 @@ app = FastAPI(
 
 app.include_router(auth_router)
 app.include_router(children_router)
+app.include_router(devices_router)
+app.include_router(device_api_router)
+app.include_router(controls_router)
 
 
 @app.get("/health")

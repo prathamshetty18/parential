@@ -25,6 +25,8 @@ services:
       - "8000:8000"
     env_file:
       - .env
+    environment:
+      PROVISIONING_KEY: ${PROVISIONING_KEY:-winiprov_secret_key_change_me}
     depends_on:
       db:
         condition: service_healthy
