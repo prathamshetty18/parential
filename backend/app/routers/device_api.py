@@ -116,13 +116,16 @@ def device_heartbeat(
     return {"status": "ok", "last_seen": device.last_seen}
 
 
+WS_AUTH_TIMEOUT_SECONDS = 10.0
+
+
 @router.websocket("/ws/device")
 async def websocket_device_endpoint(websocket: WebSocket):
     await websocket.accept()
 
-    # 10 second authentication timeout
+    # 10 second authentication timeout (configurable via WS_AUTH_TIMEOUT_SECONDS)
     try:
-        auth_payload = await asyncio.wait_for(websocket.receive_json(), timeout=10.0)
+        auth_payload = await asyncio.wait_for(websocket.receive_json(), timeout=WS_AUTH_TIMEOUT_SECONDS)
     except Exception:
         await websocket.close(code=1008)  # Policy violation / timeout
         return

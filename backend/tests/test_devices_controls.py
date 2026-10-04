@@ -152,6 +152,21 @@ def test_get_and_unpair_child_device_two_parent_isolation():
 
 # --- 2. CONTROLS ENDPOINTS & VALIDATION TESTS ---
 
+def test_two_parent_isolation_get_and_patch_controls():
+    headers_a, child_a_id = create_test_parent_and_child(email="iso_ctrl_a@example.com")
+    headers_b, _ = create_test_parent_and_child(email="iso_ctrl_b@example.com")
+
+    # Parent B gets 404 on GET parent A's child controls
+    assert client.get(f"/children/{child_a_id}/controls", headers=headers_b).status_code == 404
+
+    # Parent B gets 404 on PATCH parent A's child controls
+    assert client.patch(
+        f"/children/{child_a_id}/controls",
+        json={"daily_limit_minutes": 60},
+        headers=headers_b
+    ).status_code == 404
+
+
 def test_get_controls_get_or_create():
     headers_a, child_a_id = create_test_parent_and_child(email="ctrl_a@example.com")
     headers_b, _ = create_test_parent_and_child(email="ctrl_b@example.com")
@@ -273,6 +288,16 @@ def test_sync_status_pending_then_applied():
 
 
 # --- 4. WEBSOCKET TESTS ---
+
+def test_websocket_auth_timeout_closes(monkeypatch):
+    import app.routers.device_api as device_api_module
+    monkeypatch.setattr(device_api_module, "WS_AUTH_TIMEOUT_SECONDS", 0.05)
+
+    with pytest.raises(Exception):
+        with client.websocket_connect("/ws/device") as ws:
+            # Send nothing, connection closes after timeout
+            ws.receive_json()
+
 
 def test_websocket_bad_auth_closes():
     headers, child_id = create_test_parent_and_child(email="ws_bad@example.com")
